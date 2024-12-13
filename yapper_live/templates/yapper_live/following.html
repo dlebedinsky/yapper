@@ -1,0 +1,60 @@
+{% extends "yapper_live/layout.html" %}
+{% load static %}
+
+{% block body %}
+    <h2>Following</h2>
+    <div id="posts">
+        {% for post in page_obj %}
+            <div class="post" data-post-id="{{ post.id }}">
+                <p><strong><a href="{% url 'profile' post.user.username %}">{{ post.user.username }}</a></strong></p>
+                <p class="post-content">{{ post.content }}</p>
+                <p><small>{{ post.timestamp }}{% if post.edited %} (edited){% endif %}</small></p>
+                <button class="like-button btn btn-sm btn-outline-primary" data-post-id="{{ post.id }}">
+                    {% if user in post.likes.all %}
+                        Unlike
+                    {% else %}
+                        Like
+                    {% endif %}
+                </button>
+                <span id="likes-count-{{ post.id }}" class="likes-count">{{ post.likes.count }}</span> likes
+                {% if user == post.user %}
+                    <button class="edit-button btn btn-sm btn-outline-primary">Edit</button>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+    <div class="pagination">
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1">&laquo; first</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">previous</a>
+                    </li>
+                {% endif %}
+                <li class="page-item active">
+                    <span class="page-link">
+                        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+                    </span>
+                </li>
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">next</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% if user.is_authenticated %}
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+    {% endif %}
+{% endblock %}
+
+{% block script %}
+    <script src="{% static 'yapper_live/index.js' %}"></script>
+{% endblock %}

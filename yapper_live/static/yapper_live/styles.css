@@ -1,0 +1,9 @@
+h2 {
+    margin-top: 20px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+textarea {
+    min-height: 200px;
+}
