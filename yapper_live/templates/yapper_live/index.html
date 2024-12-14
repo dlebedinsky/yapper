@@ -4,11 +4,15 @@
 {% block body %}
     <h2>All Posts</h2>
     {% if user.is_authenticated %}
-        <div id="new-post-box">
+        <div class="text-left mb-3">
+            <button id="show-new-post-box" class="btn btn-primary">New Post</button>
+        </div>
+        <div id="new-post-box" style="display: none;">
             <h3>New Post</h3>
             <textarea id="new-post-content" class="form-control" rows="3" placeholder="What's on your mind?"></textarea>
             <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
             <button id="submit-post" class="btn btn-primary mt-2">Post</button>
+            <button id="discard-post" class="btn btn-secondary mt-2">Discard</button>
         </div>
     {% endif %}
     <div id="posts">

@@ -1,6 +1,26 @@
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM fully loaded and parsed');
     
+    // Show new post box when "New Post" button is clicked
+    const showNewPostButton = document.querySelector('#show-new-post-box');
+    const newPostBox = document.querySelector('#new-post-box');
+    if (showNewPostButton && newPostBox) {
+        showNewPostButton.addEventListener('click', () => {
+            newPostBox.style.display = 'block';
+            showNewPostButton.style.display = 'none';
+        });
+    }
+
+    // Handle discard post button click
+    const discardPostButton = document.querySelector('#discard-post');
+    if (discardPostButton) {
+        discardPostButton.addEventListener('click', () => {
+            document.querySelector('#new-post-content').value = '';
+            newPostBox.style.display = 'none';
+            showNewPostButton.style.display = 'block';
+        });
+    }
+
     // Use buttons to toggle between views
     const submitPostButton = document.querySelector('#submit-post');
     if (submitPostButton) {
