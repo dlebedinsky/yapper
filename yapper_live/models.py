@@ -21,6 +21,7 @@ class Post(models.Model):
                                    related_name="liked_posts",
                                    blank=True)
     edited = models.BooleanField(default=False)
+    topics = models.JSONField(default=list, blank=True)
 
     def __str__(self):
         return f"{self.user.username}: {self.content}"

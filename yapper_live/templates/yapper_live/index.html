@@ -10,6 +10,7 @@
         <div id="new-post-box" style="display: none;">
             <h3>New Post</h3>
             <textarea id="new-post-content" class="form-control" rows="3" placeholder="What's on your mind?"></textarea>
+            <input type="text" id="new-post-topics" class="form-control mt-2" placeholder="Enter topics separated by hashtags (e.g., #topic1 #topic2)">
             <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
             <button id="submit-post" class="btn btn-primary mt-2">Post</button>
             <button id="discard-post" class="btn btn-secondary mt-2">Discard</button>
@@ -21,6 +22,11 @@
                 <p><strong><a href="{% url 'profile' post.user.username %}">{{ post.user.username }}</a></strong> (Post #{{ post.id }})</p>
                 <p class="post-content">{{ post.content }}</p>
                 <p><small>{{ post.timestamp }}{% if post.edited %} (edited){% endif %}</small></p>
+                <p class="post-topics">
+                    {% for topic in post.topics %}
+                        <span class="badge badge-primary">#{{ topic }}</span>
+                    {% endfor %}
+                </p>
                 <button class="like-button btn btn-sm btn-outline-primary" data-post-id="{{ post.id }}">
                     {% if user in post.likes.all %}
                         Unlike

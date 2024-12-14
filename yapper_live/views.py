@@ -80,11 +80,13 @@ def new_post(request):
     if request.method == "POST":
         data = json.loads(request.body)
         content = data.get("content", "")
+        topics = data.get("topics", "")
         if content == "":
             return JsonResponse({"error": "Post content cannot be empty."},
                                 status=400)
 
-        post = Post(user=request.user, content=content)
+        topics_list = [topic.strip().lower() for topic in topics.split('#') if topic.strip()]
+        post = Post(user=request.user, content=content, topics=topics_list)
         post.save()
         return JsonResponse({"message": "Post created successfully."},
                             status=201)

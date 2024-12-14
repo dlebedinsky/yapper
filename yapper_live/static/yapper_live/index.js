@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (discardPostButton) {
         discardPostButton.addEventListener('click', () => {
             document.querySelector('#new-post-content').value = '';
+            document.querySelector('#new-post-topics').value = '';
             newPostBox.style.display = 'none';
             showNewPostButton.style.display = 'block';
         });
@@ -27,11 +28,13 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Submit post button found');
         submitPostButton.addEventListener('click', () => {
             const content = document.querySelector('#new-post-content').value;
-            console.log('Submitting new post:', content);
+            const topics = document.querySelector('#new-post-topics').value.toLowerCase();
+            console.log('Submitting new post:', content, topics);
             fetch('/new_post', {
                 method: 'POST',
                 body: JSON.stringify({
-                    content: content
+                    content: content,
+                    topics: topics
                 }),
                 headers: {
                     'Content-Type': 'application/json',
@@ -44,6 +47,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (result.message) {
                     alert(result.message);
                     document.querySelector('#new-post-content').value = '';
+                    document.querySelector('#new-post-topics').value = '';
                     // Reload posts
                     load_posts();
                 } else if (result.error) {
