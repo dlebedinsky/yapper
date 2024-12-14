@@ -100,6 +100,11 @@ def profile(request, username):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     is_following = request.user.is_authenticated and request.user in user.followers.all()
+    if request.method == "POST" and request.user == user:
+        user.state = request.POST.get("state", "")
+        user.city = request.POST.get("city", "")
+        user.save()
+        return HttpResponseRedirect(reverse("profile", args=[username]))
     return render(request, "yapper_live/profile.html", {
         "profile_user": user,
         "page_obj": page_obj,

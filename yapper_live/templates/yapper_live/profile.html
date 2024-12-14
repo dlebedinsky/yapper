@@ -2,61 +2,148 @@
 {% load static %}
 
 {% block body %}
-    <h2>{{ profile_user.username }}</h2>
-    <p id="followers-count">Followers: {{ profile_user.followers.count }}</p>
-    <p id="following-count">Following: {{ profile_user.following.count }}</p>
-    {% if request.user.is_authenticated and request.user != profile_user %}
-        <form id="follow-form">
-            {% csrf_token %}
-            <button id="follow-button" class="btn btn-primary">
-                {% if is_following %}
-                    Unfollow
-                {% else %}
-                    Follow
-                {% endif %}
-            </button>
-        </form>
-    {% endif %}
-    <div id="posts">
-        {% for post in page_obj %}
-            <div class="post" data-post-id="{{ post.id }}">
-                <p><strong>{{ post.user.username }}</strong></p>
-                <p class="post-content">{{ post.content }}</p>
-                <p><small>{{ post.timestamp }}{% if post.edited %} (edited){% endif %}</small></p>
-                <button class="like-button btn btn-sm btn-outline-primary" data-post-id="{{ post.id }}">
-                    {% if user in post.likes.all %}
-                        Unlike
+    <div class="container">
+        <h2>{{ profile_user.username }}</h2>
+        <p id="followers-count">Followers: {{ profile_user.followers.count }}</p>
+        <p id="following-count">Following: {{ profile_user.following.count }}</p>
+        {% if request.user.is_authenticated and request.user != profile_user %}
+            <form id="follow-form">
+                {% csrf_token %}
+                <button id="follow-button" class="btn btn-primary">
+                    {% if is_following %}
+                        Unfollow
                     {% else %}
-                        Like
+                        Follow
                     {% endif %}
                 </button>
-                <span id="likes-count-{{ post.id }}" class="likes-count">{{ post.likes.count }}</span> likes
-                {% if user == post.user %}
-                    <button class="edit-button btn btn-sm btn-outline-primary">Edit</button>
+            </form>
+        {% endif %}
+        {% if request.user == profile_user %}
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label for="state">State</label>
+                        <select id="state" name="state" class="form-control">
+                            <option value="">Select State</option>
+                            <option value="AL" {% if profile_user.state == "AL" %}selected{% endif %}>Alabama</option>
+                            <option value="AK" {% if profile_user.state == "AK" %}selected{% endif %}>Alaska</option>
+                            <option value="AZ" {% if profile_user.state == "AZ" %}selected{% endif %}>Arizona</option>
+                            <option value="AR" {% if profile_user.state == "AR" %}selected{% endif %}>Arkansas</option>
+                            <option value="CA" {% if profile_user.state == "CA" %}selected{% endif %}>California</option>
+                            <option value="CO" {% if profile_user.state == "CO" %}selected{% endif %}>Colorado</option>
+                            <option value="CT" {% if profile_user.state == "CT" %}selected{% endif %}>Connecticut</option>
+                            <option value="DE" {% if profile_user.state == "DE" %}selected{% endif %}>Delaware</option>
+                            <option value="FL" {% if profile_user.state == "FL" %}selected{% endif %}>Florida</option>
+                            <option value="GA" {% if profile_user.state == "GA" %}selected{% endif %}>Georgia</option>
+                            <option value="HI" {% if profile_user.state == "HI" %}selected{% endif %}>Hawaii</option>
+                            <option value="ID" {% if profile_user.state == "ID" %}selected{% endif %}>Idaho</option>
+                            <option value="IL" {% if profile_user.state == "IL" %}selected{% endif %}>Illinois</option>
+                            <option value="IN" {% if profile_user.state == "IN" %}selected{% endif %}>Indiana</option>
+                            <option value="IA" {% if profile_user.state == "IA" %}selected{% endif %}>Iowa</option>
+                            <option value="KS" {% if profile_user.state == "KS" %}selected{% endif %}>Kansas</option>
+                            <option value="KY" {% if profile_user.state == "KY" %}selected{% endif %}>Kentucky</option>
+                            <option value="LA" {% if profile_user.state == "LA" %}selected{% endif %}>Louisiana</option>
+                            <option value="ME" {% if profile_user.state == "ME" %}selected{% endif %}>Maine</option>
+                            <option value="MD" {% if profile_user.state == "MD" %}selected{% endif %}>Maryland</option>
+                            <option value="MA" {% if profile_user.state == "MA" %}selected{% endif %}>Massachusetts</option>
+                            <option value="MI" {% if profile_user.state == "MI" %}selected{% endif %}>Michigan</option>
+                            <option value="MN" {% if profile_user.state == "MN" %}selected{% endif %}>Minnesota</option>
+                            <option value="MS" {% if profile_user.state == "MS" %}selected{% endif %}>Mississippi</option>
+                            <option value="MO" {% if profile_user.state == "MO" %}selected{% endif %}>Missouri</option>
+                            <option value="MT" {% if profile_user.state == "MT" %}selected{% endif %}>Montana</option>
+                            <option value="NE" {% if profile_user.state == "NE" %}selected{% endif %}>Nebraska</option>
+                            <option value="NV" {% if profile_user.state == "NV" %}selected{% endif %}>Nevada</option>
+                            <option value="NH" {% if profile_user.state == "NH" %}selected{% endif %}>New Hampshire</option>
+                            <option value="NJ" {% if profile_user.state == "NJ" %}selected{% endif %}>New Jersey</option>
+                            <option value="NM" {% if profile_user.state == "NM" %}selected{% endif %}>New Mexico</option>
+                            <option value="NY" {% if profile_user.state == "NY" %}selected{% endif %}>New York</option>
+                            <option value="NC" {% if profile_user.state == "NC" %}selected{% endif %}>North Carolina</option>
+                            <option value="ND" {% if profile_user.state == "ND" %}selected{% endif %}>North Dakota</option>
+                            <option value="OH" {% if profile_user.state == "OH" %}selected{% endif %}>Ohio</option>
+                            <option value="OK" {% if profile_user.state == "OK" %}selected{% endif %}>Oklahoma</option>
+                            <option value="OR" {% if profile_user.state == "OR" %}selected{% endif %}>Oregon</option>
+                            <option value="PA" {% if profile_user.state == "PA" %}selected{% endif %}>Pennsylvania</option>
+                            <option value="RI" {% if profile_user.state == "RI" %}selected{% endif %}>Rhode Island</option>
+                            <option value="SC" {% if profile_user.state == "SC" %}selected{% endif %}>South Carolina</option>
+                            <option value="SD" {% if profile_user.state == "SD" %}selected{% endif %}>South Dakota</option>
+                            <option value="TN" {% if profile_user.state == "TN" %}selected{% endif %}>Tennessee</option>
+                            <option value="TX" {% if profile_user.state == "TX" %}selected{% endif %}>Texas</option>
+                            <option value="UT" {% if profile_user.state == "UT" %}selected{% endif %}>Utah</option>
+                            <option value="VT" {% if profile_user.state == "VT" %}selected{% endif %}>Vermont</option>
+                            <option value="VA" {% if profile_user.state == "VA" %}selected{% endif %}>Virginia</option>
+                            <option value="WA" {% if profile_user.state == "WA" %}selected{% endif %}>Washington</option>
+                            <option value="WV" {% if profile_user.state == "WV" %}selected{% endif %}>West Virginia</option>
+                            <option value="WI" {% if profile_user.state == "WI" %}selected{% endif %}>Wisconsin</option>
+                            <option value="WY" {% if profile_user.state == "WY" %}selected{% endif %}>Wyoming</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label for="city">City</label>
+                        <input type="text" id="city" name="city" class="form-control" value="{{ profile_user.city|default_if_none:'' }}">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </form>
+        {% endif %}
+        <div id="posts">
+            {% for post in page_obj %}
+                <div class="post" data-post-id="{{ post.id }}">
+                    <p><strong>{{ post.user.username }}</strong></p>
+                    <p class="post-content">{{ post.content }}</p>
+                    <p><small>{{ post.timestamp }}{% if post.edited %} (edited){% endif %}</small></p>
+                    <button class="like-button btn btn-sm btn-outline-primary" data-post-id="{{ post.id }}">
+                        {% if user in post.likes.all %}
+                            Unlike
+                        {% else %}
+                            Like
+                        {% endif %}
+                    </button>
+                    <span id="likes-count-{{ post.id }}" class="likes-count">{{ post.likes.count }}</span> likes
+                    {% if user == post.user %}
+                        <button class="edit-button btn btn-sm btn-outline-primary">Edit</button>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+        <div class="pagination">
+            <span class="step-links">
+                {% if page_obj.has_previous %}
+                    <a href="?page=1">&laquo; first</a>
+                    <a href="?page={{ page_obj.previous_page_number }}">previous</a>
                 {% endif %}
-            </div>
-        {% endfor %}
-    </div>
-    <div class="pagination">
-        <span class="step-links">
-            {% if page_obj.has_previous %}
-                <a href="?page=1">&laquo; first</a>
-                <a href="?page={{ page_obj.previous_page_number }}">previous</a>
-            {% endif %}
-            <span class="current">
-                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+                <span class="current">
+                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+                </span>
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}">next</a>
+                    <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+                {% endif %}
             </span>
-            {% if page_obj.has_next %}
-                <a href="?page={{ page_obj.next_page_number }}">next</a>
-                <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
-            {% endif %}
-        </span>
+        </div>
+        {% if user.is_authenticated %}
+            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        {% endif %}
     </div>
-    {% if user.is_authenticated %}
-        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-    {% endif %}
 {% endblock %}
 
 {% block script %}
     <script src="{% static 'yapper_live/profile.js' %}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const cityInput = document.querySelector('#city');
+            if (cityInput) {
+                cityInput.addEventListener('focus', function() {
+                    if (cityInput.value === 'None') {
+                        cityInput.value = '';
+                    }
+                });
+                cityInput.addEventListener('blur', function() {
+                    if (cityInput.value === '') {
+                        cityInput.value = 'None';
+                    }
+                });
+            }
+        });
+    </script>
 {% endblock %}

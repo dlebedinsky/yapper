@@ -7,6 +7,8 @@ class User(AbstractUser):
                                        symmetrical=False,
                                        related_name='following',
                                        blank=True)
+    state = models.CharField(max_length=2, blank=True, null=True)
+    city = models.CharField(max_length=100, blank=True, null=True)
 
 
 class Post(models.Model):
