@@ -5,11 +5,27 @@
     <head>
         <title>{% block title %}Social Network{% endblock %}</title>
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
-        <link href="{% static 'yapper_live/styles.css' %}" rel="stylesheet">
+        <!-- <link href="{% static 'yapper_live/styles.css' %}" rel="stylesheet"> -->
+        <style>
+            h2 {
+                margin-top: 20px;
+                margin-bottom: 20px;
+                text-align: center;
+            }
+
+            textarea {
+                min-height: 200px;
+            }
+
+            #main-navbar {
+                background-color: aqua;
+                color:black;
+            }
+        </style>
     </head>
     <body>
         
-        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <nav id="main-navbar" class="navbar navbar-expand-lg navbar-light">
             <a class="navbar-brand" href="#">Yapper</a>
           
             <div>

@@ -1,3 +1,6 @@
+/*I found it difficult to make the link to styles.css work with bootstrap
+I was able to resolve the issue only by copy and pasting CSS code 
+to the style tag in layout.html*/
 h2 {
     margin-top: 20px;
     margin-bottom: 20px;
