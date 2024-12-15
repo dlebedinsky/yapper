@@ -145,7 +145,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const originalMeetingTime = meetingTimeP ? meetingTimeP.innerText.replace('Meeting Time: ', '') : '';
         const locationP = postDiv.querySelector('.post-location');
         const originalLocation = locationP ? locationP.innerText.replace('Location: ', '') : '';
-        const originalImageUrl = postDiv.querySelector('.post-image-url') ? postDiv.querySelector('.post-image-url').innerText : '';
+        const originalImageUrl = postDiv.querySelector('img') ? postDiv.querySelector('img').src : '';
         const likeButton = postDiv.querySelector('.like-button');
         const deleteButton = postDiv.querySelector('.delete-button');
 
@@ -265,10 +265,20 @@ document.addEventListener('DOMContentLoaded', function() {
                     updatedLocationP.innerText = `Location: ${newLocation}`;
                     locationInput.replaceWith(updatedLocationP);
                     // Update image URL
-                    const updatedImageUrlP = document.createElement('p');
-                    updatedImageUrlP.className = 'post-image-url';
-                    updatedImageUrlP.innerText = newImageUrl;
-                    imageUrlInput.replaceWith(updatedImageUrlP);
+                    if (newImageUrl) {
+                        const updatedImageUrlImg = document.createElement('img');
+                        updatedImageUrlImg.src = newImageUrl;
+                        updatedImageUrlImg.alt = 'Post Image';
+                        updatedImageUrlImg.style.maxWidth = '400px';
+                        updatedImageUrlImg.style.maxHeight = '300px';
+                        updatedImageUrlImg.style.marginRight = '10px';
+                        if (postDiv.querySelector('img')) {
+                            postDiv.querySelector('img').replaceWith(updatedImageUrlImg);
+                        } else {
+                            postDiv.appendChild(updatedImageUrlImg);
+                        }
+                    }
+                    imageUrlInput.remove();
                     // Add edited label
                     const editedLabel = document.createElement('small');
                     editedLabel.className = 'text-muted';
