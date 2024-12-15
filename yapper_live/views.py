@@ -26,7 +26,7 @@ def calculate_distance(user_location, post_location):
         return geodesic(user_location, post_location).miles
     return None
 
-def index(request):
+def index(request, page_number=1):
     if request.user.is_authenticated and (not request.user.city or not request.user.state or not request.user.max_distance):
         return render(request, "yapper_live/index.html", {
             "error_message": "To see posts from others, add your location and distance preferences"
@@ -34,18 +34,16 @@ def index(request):
 
     posts = Post.objects.all().order_by('-timestamp')
     paginator = Paginator(posts, 10)  # Show 10 posts per page
-    page_number = request.GET.get('page')
+    page_number = request.GET.get('page', page_number)
     page_obj = paginator.get_page(page_number)
     user_location = get_location_coordinates(f"{request.user.city}, {request.user.state}") if request.user.is_authenticated else None
     max_distance = request.user.max_distance if request.user.is_authenticated else None
-    filtered_posts = []
     for post in page_obj:
         post_location = get_location_coordinates(post.location)
         post.distance = calculate_distance(user_location, post_location)
-        if max_distance is None or (post.distance is not None and post.distance <= max_distance):
-            filtered_posts.append(post)
     return render(request, "yapper_live/index.html", {
-        "page_obj": filtered_posts
+        "page_obj": page_obj,
+        "posts": page_obj.object_list
     })
 
 

@@ -29,6 +29,19 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    const cityInput = document.querySelector('#city');
+    if (cityInput) {
+        cityInput.addEventListener('focus', function() {
+            if (cityInput.value === 'None') {
+                cityInput.value = '';
+            }
+        });
+        cityInput.addEventListener('blur', function() {
+            if (cityInput.value === '') {
+                cityInput.value = 'None';
+            }
+        });
+    }
     // Function to handle like button click
     function handleLikeButtonClick(event) {
         if (!document.querySelector('[name=csrfmiddlewaretoken]')) {

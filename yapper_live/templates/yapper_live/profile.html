@@ -147,21 +147,4 @@
 
 {% block script %}
     <script src="{% static 'yapper_live/profile.js' %}"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const cityInput = document.querySelector('#city');
-            if (cityInput) {
-                cityInput.addEventListener('focus', function() {
-                    if (cityInput.value === 'None') {
-                        cityInput.value = '';
-                    }
-                });
-                cityInput.addEventListener('blur', function() {
-                    if (cityInput.value === '') {
-                        cityInput.value = 'None';
-                    }
-                });
-            }
-        });
-    </script>
 {% endblock %}
