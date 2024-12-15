@@ -2,7 +2,16 @@
 {% load static %}
 
 {% block body %}
-    <h2>All Posts</h2>
+    <div class="d-flex justify-content-start align-items-center mb-3">
+        <h2 class="mr-3">All Posts</h2>
+        <div class="search-bar d-flex position-relative">
+            <div class="flex-grow-1 position-relative">
+                <input type="text" id="topic-search" class="form-control" placeholder="Search posts by topic">
+                <div id="suggestions" class="list-group position-absolute w-100" style="display: none; top: 100%; z-index: 1000;"></div>
+            </div>
+            <button id="search-button" class="btn btn-primary ml-2">Search</button>
+        </div>
+    </div>
     {% if user.is_authenticated %}
         <div class="text-left mb-3">
             <button id="show-new-post-box" class="btn btn-primary">New Post</button>
@@ -17,29 +26,33 @@
         </div>
     {% endif %}
     <div id="posts">
-        {% for post in page_obj %}
-            <div class="post" data-post-id="{{ post.id }}">
-                <p><strong><a href="{% url 'profile' post.user.username %}">{{ post.user.username }}</a></strong> (Post #{{ post.id }})</p>
-                <p class="post-content">{{ post.content }}</p>
-                <p><small>{{ post.timestamp }}{% if post.edited %} (edited){% endif %}</small></p>
-                <p class="post-topics">
-                    {% for topic in post.topics %}
-                        <span class="badge badge-primary">#{{ topic }}</span>
-                    {% endfor %}
-                </p>
-                <button class="like-button btn btn-sm btn-outline-primary" data-post-id="{{ post.id }}">
-                    {% if user in post.likes.all %}
-                        Unlike
-                    {% else %}
-                        Like
+        {% if no_results %}
+            <p>Sorry, no results for this topic.</p>
+        {% else %}
+            {% for post in page_obj %}
+                <div class="post" data-post-id="{{ post.id }}">
+                    <p><strong><a href="{% url 'profile' post.user.username %}">{{ post.user.username }}</a></strong> (Post #{{ post.id }})</p>
+                    <p class="post-content">{{ post.content }}</p>
+                    <p><small>{{ post.timestamp }}{% if post.edited %} (edited){% endif %}</small></p>
+                    <p class="post-topics">
+                        {% for topic in post.topics %}
+                            <span class="badge badge-primary">#{{ topic }}</span>
+                        {% endfor %}
+                    </p>
+                    <button class="like-button btn btn-sm btn-outline-primary" data-post-id="{{ post.id }}">
+                        {% if user in post.likes.all %}
+                            Unlike
+                        {% else %}
+                            Like
+                        {% endif %}
+                    </button>
+                    <span id="likes-count-{{ post.id }}" class="likes-count">{{ post.likes.count }}</span> likes
+                    {% if user == post.user %}
+                        <button class="edit-button btn btn-sm btn-outline-primary">Edit</button>
                     {% endif %}
-                </button>
-                <span id="likes-count-{{ post.id }}" class="likes-count">{{ post.likes.count }}</span> likes
-                {% if user == post.user %}
-                    <button class="edit-button btn btn-sm btn-outline-primary">Edit</button>
-                {% endif %}
-            </div>
-        {% endfor %}
+                </div>
+            {% endfor %}
+        {% endif %}
     </div>
     <div class="pagination">
         <nav aria-label="Page navigation">

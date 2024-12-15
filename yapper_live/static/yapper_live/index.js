@@ -173,4 +173,80 @@ document.addEventListener('DOMContentLoaded', function() {
         button.onclick = handleEditButtonClick;
     });
 
+    // Handle topic search
+    const topicSearchInput = document.querySelector('#topic-search');
+    const searchButton = document.querySelector('#search-button');
+    const suggestionsContainer = document.querySelector('#suggestions');
+    if (topicSearchInput && searchButton && suggestionsContainer) {
+        topicSearchInput.addEventListener('input', function() {
+            const query = topicSearchInput.value.toLowerCase();
+            if (query.length > 0) {
+                fetch(`/search_topics?query=${query}`)
+                .then(response => response.json())
+                .then(data => {
+                    suggestionsContainer.innerHTML = '';
+                    data.topics.forEach(topic => {
+                        const suggestionItem = document.createElement('a');
+                        suggestionItem.className = 'list-group-item list-group-item-action';
+                        suggestionItem.innerText = `#${topic}`;
+                        suggestionItem.href = `#`;
+                        suggestionItem.addEventListener('click', function(event) {
+                            event.preventDefault();
+                            topicSearchInput.value = `#${topic}`;
+                            suggestionsContainer.style.display = 'none';
+                            filterPostsByTopic(topic);
+                            searchButton.innerText = 'Clear Search';
+                        });
+                        suggestionsContainer.appendChild(suggestionItem);
+                    });
+                    suggestionsContainer.style.display = 'block';
+                });
+            } else {
+                suggestionsContainer.style.display = 'none';
+            }
+        });
+
+        topicSearchInput.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                const topic = topicSearchInput.value.replace('#', '').toLowerCase();
+                filterPostsByTopic(topic);
+                suggestionsContainer.style.display = 'none';
+                searchButton.innerText = 'Clear Search';
+            }
+        });
+
+        searchButton.addEventListener('click', function() {
+            if (searchButton.innerText === 'Clear Search') {
+                topicSearchInput.value = '';
+                load_posts();
+                searchButton.innerText = 'Search';
+            } else {
+                const topic = topicSearchInput.value.replace('#', '').toLowerCase();
+                filterPostsByTopic(topic);
+                suggestionsContainer.style.display = 'none';
+                searchButton.innerText = 'Clear Search';
+            }
+        });
+
+        document.addEventListener('click', function(event) {
+            if (!suggestionsContainer.contains(event.target) && event.target !== topicSearchInput) {
+                suggestionsContainer.style.display = 'none';
+            }
+        });
+    }
+
+    function filterPostsByTopic(topic) {
+        fetch(`/filter_posts?topic=${topic}`)
+        .then(response => response.text())
+        .then(html => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const postsContainer = document.querySelector('#posts');
+            postsContainer.innerHTML = doc.querySelector('#posts').innerHTML;
+            if (postsContainer.innerHTML.trim() === '') {
+                postsContainer.innerHTML = '<p>No posts found for this topic.</p>';
+            }
+            console.log('Posts filtered by topic:', topic);
+        });
+    }
 });
