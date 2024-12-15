@@ -22,6 +22,7 @@ class Post(models.Model):
                                    blank=True)
     edited = models.BooleanField(default=False)
     topics = models.JSONField(default=list, blank=True)
+    meeting_time = models.CharField(max_length=20, blank=True, null=True)
 
     def __str__(self):
         return f"{self.user.username}: {self.content}"

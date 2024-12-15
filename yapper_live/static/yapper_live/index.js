@@ -17,6 +17,8 @@ document.addEventListener('DOMContentLoaded', function() {
         discardPostButton.addEventListener('click', () => {
             document.querySelector('#new-post-content').value = '';
             document.querySelector('#new-post-topics').value = '';
+            document.querySelector('#new-post-meeting-date').value = '';
+            document.querySelector('#new-post-meeting-time').value = '';
             newPostBox.style.display = 'none';
             showNewPostButton.style.display = 'block';
         });
@@ -29,12 +31,16 @@ document.addEventListener('DOMContentLoaded', function() {
         submitPostButton.addEventListener('click', () => {
             const content = document.querySelector('#new-post-content').value;
             const topics = document.querySelector('#new-post-topics').value.toLowerCase();
-            console.log('Submitting new post:', content, topics);
+            const meetingDate = document.querySelector('#new-post-meeting-date').value;
+            const meetingTime = document.querySelector('#new-post-meeting-time').value;
+            const meetingDateTime = `${meetingDate} ${meetingTime}`;
+            console.log('Submitting new post:', content, topics, meetingDateTime);
             fetch('/new_post', {
                 method: 'POST',
                 body: JSON.stringify({
                     content: content,
-                    topics: topics
+                    topics: topics,
+                    meeting_time: meetingDateTime
                 }),
                 headers: {
                     'Content-Type': 'application/json',
@@ -48,6 +54,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     alert(result.message);
                     document.querySelector('#new-post-content').value = '';
                     document.querySelector('#new-post-topics').value = '';
+                    document.querySelector('#new-post-meeting-date').value = '';
+                    document.querySelector('#new-post-meeting-time').value = '';
                     // Reload posts
                     load_posts();
                 } else if (result.error) {

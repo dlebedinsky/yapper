@@ -18,8 +18,10 @@
         </div>
         <div id="new-post-box" style="display: none;">
             <h3>New Post</h3>
-            <textarea id="new-post-content" class="form-control" rows="3" placeholder="What's on your mind?"></textarea>
+            <textarea id="new-post-content" class="form-control" rows="3" placeholder="What would you like to talk about?"></textarea>
             <input type="text" id="new-post-topics" class="form-control mt-2" placeholder="Enter topics separated by hashtags (e.g., #topic1 #topic2)">
+            <input type="date" id="new-post-meeting-date" class="form-control mt-2" placeholder="Select meeting date">
+            <input type="time" id="new-post-meeting-time" class="form-control mt-2" placeholder="Select meeting time">
             <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
             <button id="submit-post" class="btn btn-primary mt-2">Post</button>
             <button id="discard-post" class="btn btn-secondary mt-2">Discard</button>
@@ -39,6 +41,7 @@
                             <span class="badge badge-primary">#{{ topic }}</span>
                         {% endfor %}
                     </p>
+                    <p><strong>Meeting Time:</strong> {{ post.meeting_time }}</p>
                     <button class="like-button btn btn-sm btn-outline-primary" data-post-id="{{ post.id }}">
                         {% if user in post.likes.all %}
                             Unlike
