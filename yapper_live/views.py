@@ -27,16 +27,25 @@ def calculate_distance(user_location, post_location):
     return None
 
 def index(request):
+    if request.user.is_authenticated and (not request.user.city or not request.user.state or not request.user.max_distance):
+        return render(request, "yapper_live/index.html", {
+            "error_message": "To see posts from others, add your location and distance preferences"
+        })
+
     posts = Post.objects.all().order_by('-timestamp')
     paginator = Paginator(posts, 10)  # Show 10 posts per page
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     user_location = get_location_coordinates(f"{request.user.city}, {request.user.state}") if request.user.is_authenticated else None
+    max_distance = request.user.max_distance if request.user.is_authenticated else None
+    filtered_posts = []
     for post in page_obj:
         post_location = get_location_coordinates(post.location)
         post.distance = calculate_distance(user_location, post_location)
+        if max_distance is None or (post.distance is not None and post.distance <= max_distance):
+            filtered_posts.append(post)
     return render(request, "yapper_live/index.html", {
-        "page_obj": page_obj
+        "page_obj": filtered_posts
     })
 
 
@@ -133,8 +142,19 @@ def profile(request, username):
         post_location = get_location_coordinates(post.location)
         post.distance = calculate_distance(user_location, post_location)
     if request.method == "POST" and request.user == user:
-        user.state = request.POST.get("state", "")
-        user.city = request.POST.get("city", "")
+        state = request.POST.get("state", "").strip()
+        city = request.POST.get("city", "").strip()
+        max_distance = request.POST.get("max_distance", "").strip()
+        if not (state and city and max_distance):
+            return render(request, "yapper_live/profile.html", {
+                "profile_user": user,
+                "page_obj": page_obj,
+                "is_following": is_following,
+                "error_message": "You must specify your state, city, and max distance preference before viewing posts from others"
+            })
+        user.state = state
+        user.city = city
+        user.max_distance = max_distance
         user.save()
         return HttpResponseRedirect(reverse("profile", args=[username]))
     return render(request, "yapper_live/profile.html", {

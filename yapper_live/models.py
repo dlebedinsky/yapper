@@ -9,6 +9,7 @@ class User(AbstractUser):
                                        blank=True)
     state = models.CharField(max_length=2, blank=True, null=True)
     city = models.CharField(max_length=100, blank=True, null=True)
+    max_distance = models.FloatField(blank=True, null=True)  # New field for max distance
 
 
 class Post(models.Model):

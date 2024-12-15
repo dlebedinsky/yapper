@@ -22,7 +22,7 @@
             <form method="post">
                 {% csrf_token %}
                 <div class="form-row">
-                    <div class="form-group col-md-6">
+                    <div class="form-group col-md-4">
                         <label for="state">State</label>
                         <select id="state" name="state" class="form-control">
                             <option value="">Select State</option>
@@ -78,13 +78,20 @@
                             <option value="WY" {% if profile_user.state == "WY" %}selected{% endif %}>Wyoming</option>
                         </select>
                     </div>
-                    <div class="form-group col-md-6">
+                    <div class="form-group col-md-4">
                         <label for="city">City</label>
                         <input type="text" id="city" name="city" class="form-control" value="{{ profile_user.city|default_if_none:'' }}">
+                    </div>
+                    <div class="form-group col-md-4">
+                        <label for="max_distance">Max Distance (miles)</label>
+                        <input type="number" id="max_distance" name="max_distance" class="form-control" value="{{ profile_user.max_distance|default_if_none:'' }}">
                     </div>
                 </div>
                 <button type="submit" class="btn btn-primary">Save</button>
             </form>
+            {% if error_message %}
+                <p class="text-danger mt-2">{{ error_message }}</p>
+            {% endif %}
         {% endif %}
         <div id="posts">
             {% for post in page_obj %}
