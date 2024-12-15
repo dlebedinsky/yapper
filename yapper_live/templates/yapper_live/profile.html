@@ -95,7 +95,7 @@
         {% endif %}
         <div id="posts">
             {% for post in page_obj %}
-                <div class="post" data-post-id="{{ post.id }}">
+                <div class="post border border-info rounded p-3 mb-3" data-post-id="{{ post.id }}">
                     <p><strong>{{ post.user.username }}</strong></p>
                     <div class="d-flex">
                         <div>

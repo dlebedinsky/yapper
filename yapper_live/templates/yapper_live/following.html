@@ -5,7 +5,7 @@
     <h2>Following</h2>
     <div id="posts">
         {% for post in page_obj %}
-        <div class="post" data-post-id="{{ post.id }}">
+        <div class="post border border-info rounded p-3 mb-3" data-post-id="{{ post.id }}">
             <p><strong><a href="{% url 'profile' post.user.username %}">{{ post.user.username }}</a></strong> (Post #{{ post.id }})</p>
             <div class="d-flex">
                 <div>

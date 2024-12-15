@@ -310,26 +310,28 @@ def delete_post(request, post_id):
 
 def search_topics(request):
     query = request.GET.get('query', '').lower()
-    topics = Post.objects.values_list('topics', flat=True)
+    all_posts = Post.objects.all()
     unique_topics = set()
-    for topic_list in topics:
-        unique_topics.update(topic_list)
+    for post in all_posts:
+        unique_topics.update(post.topics)  # post.topics returns a list of topics
+
     filtered_topics = [topic for topic in unique_topics if query in topic]
     return JsonResponse({'topics': filtered_topics})
 
 
 def filter_posts(request):
     topic = request.GET.get('topic', '').lower()
-    posts = Post.objects.filter(topics__icontains=topic).order_by('-timestamp')
+    posts = Post.objects.filter(topics_str__icontains=topic).order_by('-timestamp')
+
     paginator = Paginator(posts, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    if not posts:
-        no_results = True
-    else:
-        no_results = False
+
+    no_results = not posts.exists()
+
     return render(request, "yapper_live/index.html", {
         "page_obj": page_obj,
+        "posts": page_obj.object_list,
         "no_results": no_results,
         "searched_topic": topic
     })
