@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.querySelector('#new-post-meeting-date').value = '';
             document.querySelector('#new-post-meeting-time').value = '';
             document.querySelector('#new-post-location').value = '';
+            document.querySelector('#new-post-image-url').value = '';
             newPostBox.style.display = 'none';
             showNewPostButton.style.display = 'block';
         });
@@ -29,7 +30,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const submitPostButton = document.querySelector('#submit-post');
     const postError = document.querySelector('#post-error');
     if (submitPostButton) {
-        console.log('Submit post button found');
         submitPostButton.addEventListener('click', () => {
             const content = document.querySelector('#new-post-content').value;
             const topics = document.querySelector('#new-post-topics').value.toLowerCase();
@@ -37,14 +37,16 @@ document.addEventListener('DOMContentLoaded', function() {
             const meetingTime = document.querySelector('#new-post-meeting-time').value;
             const meetingDateTime = `${meetingDate} ${meetingTime}`;
             const location = document.querySelector('#new-post-location').value;
-            console.log('Submitting new post:', content, topics, meetingDateTime, location);
+            const imageUrl = document.querySelector('#new-post-image-url').value;
+
             fetch('/new_post', {
                 method: 'POST',
                 body: JSON.stringify({
                     content: content,
                     topics: topics,
                     meeting_time: meetingDateTime,
-                    location: location
+                    location: location,
+                    image_url: imageUrl
                 }),
                 headers: {
                     'Content-Type': 'application/json',
@@ -53,7 +55,6 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .then(response => response.json())
             .then(result => {
-                console.log(result);
                 if (result.message) {
                     alert(result.message);
                     document.querySelector('#new-post-content').value = '';
@@ -61,6 +62,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     document.querySelector('#new-post-meeting-date').value = '';
                     document.querySelector('#new-post-meeting-time').value = '';
                     document.querySelector('#new-post-location').value = '';
+                    document.querySelector('#new-post-image-url').value = '';
                     postError.style.display = 'none';
                     // Reload posts
                     load_posts();
@@ -68,6 +70,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     postError.innerText = result.error;
                     postError.style.display = 'block';
                 }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                postError.innerText = 'An error occurred while creating the post.';
+                postError.style.display = 'block';
             });
         });
     } else {
@@ -138,6 +145,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const originalMeetingTime = meetingTimeP ? meetingTimeP.innerText.replace('Meeting Time: ', '') : '';
         const locationP = postDiv.querySelector('.post-location');
         const originalLocation = locationP ? locationP.innerText.replace('Location: ', '') : '';
+        const originalImageUrl = postDiv.querySelector('.post-image-url') ? postDiv.querySelector('.post-image-url').innerText : '';
         const likeButton = postDiv.querySelector('.like-button');
         const deleteButton = postDiv.querySelector('.delete-button');
 
@@ -173,6 +181,11 @@ document.addEventListener('DOMContentLoaded', function() {
         locationInput.className = 'form-control mt-2';
         locationInput.value = originalLocation;
 
+        // Create an input for editing image URL
+        const imageUrlInput = document.createElement('input');
+        imageUrlInput.className = 'form-control mt-2';
+        imageUrlInput.value = originalImageUrl;
+
         // Create a save button
         const saveButton = document.createElement('button');
         saveButton.className = 'btn btn-sm btn-outline-primary mt-2';
@@ -190,6 +203,7 @@ document.addEventListener('DOMContentLoaded', function() {
         postDiv.insertBefore(meetingDateInput, button);
         postDiv.insertBefore(meetingTimeInput, button);
         postDiv.insertBefore(locationInput, button);
+        postDiv.insertBefore(imageUrlInput, button);
         button.replaceWith(saveButton);
         saveButton.insertAdjacentElement('afterend', cancelButton);
 
@@ -205,13 +219,15 @@ document.addEventListener('DOMContentLoaded', function() {
             const newMeetingTime = meetingTimeInput.value;
             const newMeetingDateTime = `${newMeetingDate} ${newMeetingTime}`;
             const newLocation = locationInput.value;
+            const newImageUrl = imageUrlInput.value;
             fetch(`/edit_post/${postId}`, {
                 method: 'PUT',
                 body: JSON.stringify({
                     content: newContent,
                     topics: newTopics,
                     meeting_time: newMeetingDateTime,
-                    location: newLocation
+                    location: newLocation,
+                    image_url: newImageUrl
                 }),
                 headers: {
                     'Content-Type': 'application/json',
@@ -248,6 +264,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     updatedLocationP.className = 'post-location';
                     updatedLocationP.innerText = `Location: ${newLocation}`;
                     locationInput.replaceWith(updatedLocationP);
+                    // Update image URL
+                    const updatedImageUrlP = document.createElement('p');
+                    updatedImageUrlP.className = 'post-image-url';
+                    updatedImageUrlP.innerText = newImageUrl;
+                    imageUrlInput.replaceWith(updatedImageUrlP);
                     // Add edited label
                     const editedLabel = document.createElement('small');
                     editedLabel.className = 'text-muted';
@@ -270,6 +291,7 @@ document.addEventListener('DOMContentLoaded', function() {
             meetingDateInput.remove();
             meetingTimeInput.remove();
             locationInput.replaceWith(locationP);
+            imageUrlInput.remove();
             saveButton.replaceWith(button);
             cancelButton.remove();
             // Show the like button again

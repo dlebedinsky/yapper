@@ -103,29 +103,28 @@ def register(request):
 @csrf_exempt
 def new_post(request):
     if request.method == "POST":
-        data = json.loads(request.body)
-        content = data.get("content", "")
-        topics = data.get("topics", "")
-        meeting_time = data.get("meeting_time", "")
-        location = data.get("location", "")
-        if content == "":
-            return JsonResponse({"error": "Post content cannot be empty."},
-                                status=400)
-        if not meeting_time or not location:
-            return JsonResponse({"error": "Please add valid meeting time and location."},
-                                status=400)
-        if not get_location_coordinates(location):
-            return JsonResponse({"error": "Please add valid meeting time and location."},
-                                status=400)
+        try:
+            data = json.loads(request.body)
+            content = data.get("content", "")
+            topics = data.get("topics", "")
+            meeting_time = data.get("meeting_time", "")
+            location = data.get("location", "")
+            image_url = data.get("image_url", "")
+            if content == "":
+                return JsonResponse({"error": "Post content cannot be empty."}, status=400)
+            if not meeting_time or not location:
+                return JsonResponse({"error": "Please add valid meeting time and location."}, status=400)
+            if not get_location_coordinates(location):
+                return JsonResponse({"error": "Please add valid meeting time and location."}, status=400)
 
-        topics_list = [topic.strip().lower() for topic in topics.split('#') if topic.strip()]
-        post = Post(user=request.user, content=content, topics=topics_list, meeting_time=meeting_time, location=location)
-        post.save()
-        return JsonResponse({"message": "Post created successfully."},
-                            status=201)
+            topics_list = [topic.strip().lower() for topic in topics.split('#') if topic.strip()]
+            post = Post(user=request.user, content=content, topics=topics_list, meeting_time=meeting_time, location=location, image_url=image_url)
+            post.save()
+            return JsonResponse({"message": "Post created successfully."}, status=201)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
     else:
-        return JsonResponse({"error": "POST request required."},
-                            status=400)
+        return JsonResponse({"error": "POST request required."}, status=400)
 
 
 def profile(request, username):
@@ -226,6 +225,7 @@ def edit_post(request, post_id):
         topics = data.get("topics", "")
         meeting_time = data.get("meeting_time", "")
         location = data.get("location", "")
+        image_url = data.get("image_url", "")
         if content == "":
             return JsonResponse({"error": "Post content cannot be empty."},
                                 status=400)
@@ -246,6 +246,7 @@ def edit_post(request, post_id):
         post.topics = topics_list
         post.meeting_time = meeting_time
         post.location = location
+        post.image_url = image_url
         post.edited = True
         post.save()
         return JsonResponse({"message": "Post updated successfully."},
