@@ -40,17 +40,24 @@
                 {% for post in posts %}
                     <div class="post" data-post-id="{{ post.id }}">
                         <p><strong><a href="{% url 'profile' post.user.username %}">{{ post.user.username }}</a></strong> (Post #{{ post.id }})</p>
-                        <p class="post-content">{{ post.content }}</p>
-                        <p class="post-topics">
-                            {% for topic in post.topics %}
-                                <span class="badge badge-primary">#{{ topic }}</span>
-                            {% endfor %}
-                        </p>
-                        <p class="post-meeting-time"><strong>Meeting Time:</strong> {{ post.meeting_time }}</p>
-                        <p class="post-location"><strong>Location:</strong> {{ post.location }}</p>
-                        {% if post.distance %}
-                            <p><strong>Distance:</strong> {{ post.distance|floatformat:2 }} miles</p>
-                        {% endif %}
+                        <div class="d-flex">
+                            <div>
+                                <p class="post-content">{{ post.content }}</p>
+                                <p class="post-topics">
+                                    {% for topic in post.topics %}
+                                        <span class="badge badge-primary">#{{ topic }}</span>
+                                    {% endfor %}
+                                </p>
+                                <p class="post-meeting-time"><strong>Meeting Time:</strong> {{ post.meeting_time }}</p>
+                                <p class="post-location"><strong>Location:</strong> {{ post.location }}</p>
+                                {% if post.distance %}
+                                    <p><strong>Distance:</strong> {{ post.distance|floatformat:2 }} miles</p>
+                                {% endif %}
+                            </div>
+                            {% if post.image_url %}
+                                <img src="{{ post.image_url }}" alt="Post Image" style="max-width: 400px; max-height:300px ; margin-right: 10px;">
+                            {% endif %}
+                        </div>
                         <button class="like-button btn btn-sm btn-outline-primary" data-post-id="{{ post.id }}">
                             {% if user in post.likes.all %}
                                 Unlike
