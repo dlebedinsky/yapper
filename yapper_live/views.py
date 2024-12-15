@@ -8,15 +8,33 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 from django.core.paginator import Paginator
 from django.views.decorators.http import require_POST
+from geopy.geocoders import Nominatim
+from geopy.distance import geodesic
 
 from .models import User, Post
 
+
+def get_location_coordinates(location):
+    geolocator = Nominatim(user_agent="yapper")
+    location = geolocator.geocode(location)
+    if location:
+        return (location.latitude, location.longitude)
+    return None
+
+def calculate_distance(user_location, post_location):
+    if user_location and post_location:
+        return geodesic(user_location, post_location).miles
+    return None
 
 def index(request):
     posts = Post.objects.all().order_by('-timestamp')
     paginator = Paginator(posts, 10)  # Show 10 posts per page
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+    user_location = get_location_coordinates(f"{request.user.city}, {request.user.state}") if request.user.is_authenticated else None
+    for post in page_obj:
+        post_location = get_location_coordinates(post.location)
+        post.distance = calculate_distance(user_location, post_location)
     return render(request, "yapper_live/index.html", {
         "page_obj": page_obj
     })
@@ -82,12 +100,19 @@ def new_post(request):
         content = data.get("content", "")
         topics = data.get("topics", "")
         meeting_time = data.get("meeting_time", "")
+        location = data.get("location", "")
         if content == "":
             return JsonResponse({"error": "Post content cannot be empty."},
                                 status=400)
+        if not meeting_time or not location:
+            return JsonResponse({"error": "Please add valid meeting time and location."},
+                                status=400)
+        if not get_location_coordinates(location):
+            return JsonResponse({"error": "Please add valid meeting time and location."},
+                                status=400)
 
         topics_list = [topic.strip().lower() for topic in topics.split('#') if topic.strip()]
-        post = Post(user=request.user, content=content, topics=topics_list, meeting_time=meeting_time)
+        post = Post(user=request.user, content=content, topics=topics_list, meeting_time=meeting_time, location=location)
         post.save()
         return JsonResponse({"message": "Post created successfully."},
                             status=201)
@@ -103,6 +128,10 @@ def profile(request, username):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     is_following = request.user.is_authenticated and request.user in user.followers.all()
+    user_location = get_location_coordinates(f"{request.user.city}, {request.user.state}") if request.user.is_authenticated else None
+    for post in page_obj:
+        post_location = get_location_coordinates(post.location)
+        post.distance = calculate_distance(user_location, post_location)
     if request.method == "POST" and request.user == user:
         user.state = request.POST.get("state", "")
         user.city = request.POST.get("city", "")
@@ -176,8 +205,17 @@ def edit_post(request, post_id):
     if request.method == "PUT":
         data = json.loads(request.body)
         content = data.get("content", "")
+        topics = data.get("topics", "")
+        meeting_time = data.get("meeting_time", "")
+        location = data.get("location", "")
         if content == "":
             return JsonResponse({"error": "Post content cannot be empty."},
+                                status=400)
+        if not meeting_time or not location:
+            return JsonResponse({"error": "Please add valid meeting time and location."},
+                                status=400)
+        if not get_location_coordinates(location):
+            return JsonResponse({"error": "Please add valid meeting time and location."},
                                 status=400)
 
         post = get_object_or_404(Post, id=post_id)
@@ -185,7 +223,48 @@ def edit_post(request, post_id):
             return JsonResponse({"error": "You can only edit your own posts."},
                                 status=403)
 
+        topics_list = [topic.strip().lower() for topic in topics.split('#') if topic.strip()]
         post.content = content
+        post.topics = topics_list
+        post.meeting_time = meeting_time
+        post.location = location
+        post.edited = True
+        post.save()
+        return JsonResponse({"message": "Post updated successfully."},
+                            status=200)
+    else:
+        return JsonResponse({"error": "PUT request required."},
+                            status=400)
+
+@login_required
+@csrf_exempt
+def edit_post_from_profile(request, username, post_id):
+    if request.method == "PUT":
+        data = json.loads(request.body)
+        content = data.get("content", "")
+        topics = data.get("topics", "")
+        meeting_time = data.get("meeting_time", "")
+        location = data.get("location", "")
+        if content == "":
+            return JsonResponse({"error": "Post content cannot be empty."},
+                                status=400)
+        if not meeting_time or not location:
+            return JsonResponse({"error": "Please add valid meeting time and location."},
+                                status=400)
+        if not get_location_coordinates(location):
+            return JsonResponse({"error": "Please add valid meeting time and location."},
+                                status=400)
+
+        post = get_object_or_404(Post, id=post_id)
+        if post.user != request.user:
+            return JsonResponse({"error": "You can only edit your own posts."},
+                                status=403)
+
+        topics_list = [topic.strip().lower() for topic in topics.split('#') if topic.strip()]
+        post.content = content
+        post.topics = topics_list
+        post.meeting_time = meeting_time
+        post.location = location
         post.edited = True
         post.save()
         return JsonResponse({"message": "Post updated successfully."},
@@ -196,28 +275,16 @@ def edit_post(request, post_id):
 
 
 @login_required
+@require_POST
 @csrf_exempt
-def edit_post_from_profile(request, username, post_id):
-    if request.method == "PUT":
-        data = json.loads(request.body)
-        content = data.get("content", "")
-        if content == "":
-            return JsonResponse({"error": "Post content cannot be empty."},
-                                status=400)
-
-        post = get_object_or_404(Post, id=post_id)
-        if post.user != request.user:
-            return JsonResponse({"error": "You can only edit your own posts."},
-                                status=403)
-
-        post.content = content
-        post.edited = True
-        post.save()
-        return JsonResponse({"message": "Post updated successfully."},
-                            status=200)
-    else:
-        return JsonResponse({"error": "PUT request required."},
-                            status=400)
+def delete_post(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    if post.user != request.user:
+        return JsonResponse({"error": "You can only delete your own posts."},
+                            status=403)
+    post.delete()
+    return JsonResponse({"message": "Post deleted successfully."},
+                        status=200)
 
 
 def search_topics(request):

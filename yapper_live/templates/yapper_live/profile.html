@@ -92,6 +92,11 @@
                     <p><strong>{{ post.user.username }}</strong></p>
                     <p class="post-content">{{ post.content }}</p>
                     <p><small>{{ post.timestamp }}{% if post.edited %} (edited){% endif %}</small></p>
+                    <p class="post-meeting-time"><strong>Meeting Time:</strong> {{ post.meeting_time }}</p>
+                    <p class="post-location"><strong>Location:</strong> {{ post.location }}</p>
+                    {% if post.distance %}
+                        <p><strong>Distance:</strong> {{ post.distance|floatformat:2 }} miles</p>
+                    {% endif %}
                     <button class="like-button btn btn-sm btn-outline-primary" data-post-id="{{ post.id }}">
                         {% if user in post.likes.all %}
                             Unlike
@@ -102,6 +107,7 @@
                     <span id="likes-count-{{ post.id }}" class="likes-count">{{ post.likes.count }}</span> likes
                     {% if user == post.user %}
                         <button class="edit-button btn btn-sm btn-outline-primary">Edit</button>
+                        <button class="delete-button btn btn-sm btn-outline-danger">Delete</button>
                     {% endif %}
                 </div>
             {% endfor %}

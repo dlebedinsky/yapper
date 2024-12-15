@@ -22,9 +22,11 @@
             <input type="text" id="new-post-topics" class="form-control mt-2" placeholder="Enter topics separated by hashtags (e.g., #topic1 #topic2)">
             <input type="date" id="new-post-meeting-date" class="form-control mt-2" placeholder="Select meeting date">
             <input type="time" id="new-post-meeting-time" class="form-control mt-2" placeholder="Select meeting time">
+            <input type="text" id="new-post-location" class="form-control mt-2" placeholder="Enter Address">
             <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
             <button id="submit-post" class="btn btn-primary mt-2">Post</button>
             <button id="discard-post" class="btn btn-secondary mt-2">Discard</button>
+            <p id="post-error" class="text-danger mt-2" style="display: none;"></p>
         </div>
     {% endif %}
     <div id="posts">
@@ -35,13 +37,16 @@
                 <div class="post" data-post-id="{{ post.id }}">
                     <p><strong><a href="{% url 'profile' post.user.username %}">{{ post.user.username }}</a></strong> (Post #{{ post.id }})</p>
                     <p class="post-content">{{ post.content }}</p>
-                    <p><small>{{ post.timestamp }}{% if post.edited %} (edited){% endif %}</small></p>
                     <p class="post-topics">
                         {% for topic in post.topics %}
                             <span class="badge badge-primary">#{{ topic }}</span>
                         {% endfor %}
                     </p>
-                    <p><strong>Meeting Time:</strong> {{ post.meeting_time }}</p>
+                    <p class="post-meeting-time"><strong>Meeting Time:</strong> {{ post.meeting_time }}</p>
+                    <p class="post-location"><strong>Location:</strong> {{ post.location }}</p>
+                    {% if post.distance %}
+                        <p><strong>Distance:</strong> {{ post.distance|floatformat:2 }} miles</p>
+                    {% endif %}
                     <button class="like-button btn btn-sm btn-outline-primary" data-post-id="{{ post.id }}">
                         {% if user in post.likes.all %}
                             Unlike
@@ -52,6 +57,7 @@
                     <span id="likes-count-{{ post.id }}" class="likes-count">{{ post.likes.count }}</span> likes
                     {% if user == post.user %}
                         <button class="edit-button btn btn-sm btn-outline-primary">Edit</button>
+                        <button class="delete-button btn btn-sm btn-outline-danger">Delete</button>
                     {% endif %}
                 </div>
             {% endfor %}

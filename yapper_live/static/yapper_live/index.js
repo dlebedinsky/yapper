@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.querySelector('#new-post-topics').value = '';
             document.querySelector('#new-post-meeting-date').value = '';
             document.querySelector('#new-post-meeting-time').value = '';
+            document.querySelector('#new-post-location').value = '';
             newPostBox.style.display = 'none';
             showNewPostButton.style.display = 'block';
         });
@@ -26,6 +27,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Use buttons to toggle between views
     const submitPostButton = document.querySelector('#submit-post');
+    const postError = document.querySelector('#post-error');
     if (submitPostButton) {
         console.log('Submit post button found');
         submitPostButton.addEventListener('click', () => {
@@ -34,13 +36,15 @@ document.addEventListener('DOMContentLoaded', function() {
             const meetingDate = document.querySelector('#new-post-meeting-date').value;
             const meetingTime = document.querySelector('#new-post-meeting-time').value;
             const meetingDateTime = `${meetingDate} ${meetingTime}`;
-            console.log('Submitting new post:', content, topics, meetingDateTime);
+            const location = document.querySelector('#new-post-location').value;
+            console.log('Submitting new post:', content, topics, meetingDateTime, location);
             fetch('/new_post', {
                 method: 'POST',
                 body: JSON.stringify({
                     content: content,
                     topics: topics,
-                    meeting_time: meetingDateTime
+                    meeting_time: meetingDateTime,
+                    location: location
                 }),
                 headers: {
                     'Content-Type': 'application/json',
@@ -56,10 +60,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     document.querySelector('#new-post-topics').value = '';
                     document.querySelector('#new-post-meeting-date').value = '';
                     document.querySelector('#new-post-meeting-time').value = '';
+                    document.querySelector('#new-post-location').value = '';
+                    postError.style.display = 'none';
                     // Reload posts
                     load_posts();
                 } else if (result.error) {
-                    alert(result.error);
+                    postError.innerText = result.error;
+                    postError.style.display = 'block';
                 }
             });
         });
@@ -125,30 +132,86 @@ document.addEventListener('DOMContentLoaded', function() {
         const postId = postDiv.dataset.postId;
         const postContentP = postDiv.querySelector('.post-content');
         const originalContent = postContentP.innerText;
+        const postTopicsP = postDiv.querySelector('.post-topics');
+        const originalTopics = Array.from(postTopicsP.querySelectorAll('.badge')).map(badge => badge.innerText.replace('#', '')).join(' ');
+        const meetingTimeP = postDiv.querySelector('.post-meeting-time');
+        const originalMeetingTime = meetingTimeP ? meetingTimeP.innerText.replace('Meeting Time: ', '') : '';
+        const locationP = postDiv.querySelector('.post-location');
+        const originalLocation = locationP ? locationP.innerText.replace('Location: ', '') : '';
+        const likeButton = postDiv.querySelector('.like-button');
+        const deleteButton = postDiv.querySelector('.delete-button');
 
-        // Create a textarea for editing
+        // Hide the like button while editing
+        if (likeButton) {
+            likeButton.style.display = 'none';
+        }
+
+        // Create a textarea for editing content
         const textarea = document.createElement('textarea');
         textarea.className = 'form-control';
         textarea.value = originalContent;
+
+        // Create an input for editing topics
+        const topicsInput = document.createElement('input');
+        topicsInput.className = 'form-control mt-2';
+        topicsInput.value = originalTopics;
+
+        // Create inputs for editing meeting date and time
+        const [originalMeetingDate, originalMeetingTimeOnly] = originalMeetingTime.split(' ');
+        const meetingDateInput = document.createElement('input');
+        meetingDateInput.type = 'date';
+        meetingDateInput.className = 'form-control mt-2';
+        meetingDateInput.value = originalMeetingDate;
+
+        const meetingTimeInput = document.createElement('input');
+        meetingTimeInput.type = 'time';
+        meetingTimeInput.className = 'form-control mt-2';
+        meetingTimeInput.value = originalMeetingTimeOnly;
+
+        // Create an input for editing location
+        const locationInput = document.createElement('input');
+        locationInput.className = 'form-control mt-2';
+        locationInput.value = originalLocation;
 
         // Create a save button
         const saveButton = document.createElement('button');
         saveButton.className = 'btn btn-sm btn-outline-primary mt-2';
         saveButton.innerText = 'Save';
-        // Set the data-post-id attribute
         saveButton.dataset.postId = postId;
+
+        // Create a cancel button
+        const cancelButton = document.createElement('button');
+        cancelButton.className = 'btn btn-sm btn-outline-secondary mt-2 ml-2';
+        cancelButton.innerText = 'Cancel';
 
         // Replace the post content with the textarea and save button
         postContentP.replaceWith(textarea);
+        postDiv.insertBefore(topicsInput, button);
+        postDiv.insertBefore(meetingDateInput, button);
+        postDiv.insertBefore(meetingTimeInput, button);
+        postDiv.insertBefore(locationInput, button);
         button.replaceWith(saveButton);
+        saveButton.insertAdjacentElement('afterend', cancelButton);
+
+        // Align save and cancel buttons with delete button
+        saveButton.style.marginTop = deleteButton.style.marginTop;
+        cancelButton.style.marginTop = deleteButton.style.marginTop;
 
         // Handle save button click
         saveButton.onclick = function() {
             const newContent = textarea.value;
+            const newTopics = topicsInput.value;
+            const newMeetingDate = meetingDateInput.value;
+            const newMeetingTime = meetingTimeInput.value;
+            const newMeetingDateTime = `${newMeetingDate} ${newMeetingTime}`;
+            const newLocation = locationInput.value;
             fetch(`/edit_post/${postId}`, {
                 method: 'PUT',
                 body: JSON.stringify({
-                    content: newContent
+                    content: newContent,
+                    topics: newTopics,
+                    meeting_time: newMeetingDateTime,
+                    location: newLocation
                 }),
                 headers: {
                     'Content-Type': 'application/json',
@@ -164,21 +227,95 @@ document.addEventListener('DOMContentLoaded', function() {
                     updatedPostContentP.innerText = newContent;
                     textarea.replaceWith(updatedPostContentP);
                     saveButton.replaceWith(button);
+                    cancelButton.remove();
+                    // Update topics
+                    const updatedTopicsP = document.createElement('p');
+                    updatedTopicsP.className = 'post-topics';
+                    newTopics.split(' ').forEach(topic => {
+                        const badge = document.createElement('span');
+                        badge.className = 'badge badge-primary';
+                        badge.innerText = `#${topic}`;
+                        updatedTopicsP.appendChild(badge);
+                    });
+                    topicsInput.replaceWith(updatedTopicsP);
+                    // Update meeting time and location
+                    const updatedMeetingTimeP = document.createElement('p');
+                    updatedMeetingTimeP.className = 'post-meeting-time';
+                    updatedMeetingTimeP.innerText = `Meeting Time: ${newMeetingDateTime}`;
+                    meetingDateInput.replaceWith(updatedMeetingTimeP);
+                    meetingTimeInput.remove();
+                    const updatedLocationP = document.createElement('p');
+                    updatedLocationP.className = 'post-location';
+                    updatedLocationP.innerText = `Location: ${newLocation}`;
+                    locationInput.replaceWith(updatedLocationP);
                     // Add edited label
                     const editedLabel = document.createElement('small');
                     editedLabel.className = 'text-muted';
                     editedLabel.innerText = ' (edited)';
                     updatedPostContentP.appendChild(editedLabel);
+                    // Show the like button again
+                    if (likeButton) {
+                        likeButton.style.display = 'inline-block';
+                    }
                 } else if (result.error) {
                     alert(result.error);
                 }
             });
+        };
+
+        // Handle cancel button click
+        cancelButton.onclick = function() {
+            textarea.replaceWith(postContentP);
+            topicsInput.replaceWith(postTopicsP);
+            meetingDateInput.remove();
+            meetingTimeInput.remove();
+            locationInput.replaceWith(locationP);
+            saveButton.replaceWith(button);
+            cancelButton.remove();
+            // Show the like button again
+            if (likeButton) {
+                likeButton.style.display = 'inline-block';
+            }
         };
     }
 
     // Select all edit buttons
     document.querySelectorAll('.edit-button').forEach(button => {
         button.onclick = handleEditButtonClick;
+    });
+
+    // Function to handle delete button click
+    function handleDeleteButtonClick(event) {
+        const button = event.target;
+        const postDiv = button.closest('.post');
+        const postId = postDiv.dataset.postId;
+
+        if (confirm("Are you sure you want to delete your post?")) {
+            fetch(`/delete_post/${postId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.message) {
+                    postDiv.remove();
+                    alert(result.message);
+                } else if (result.error) {
+                    alert(result.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+    }
+
+    // Select all delete buttons
+    document.querySelectorAll('.delete-button').forEach(button => {
+        button.onclick = handleDeleteButtonClick;
     });
 
     // Handle topic search
