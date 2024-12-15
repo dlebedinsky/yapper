@@ -91,6 +91,11 @@
                 <div class="post" data-post-id="{{ post.id }}">
                     <p><strong>{{ post.user.username }}</strong></p>
                     <p class="post-content">{{ post.content }}</p>
+                    <p class="post-topics">
+                        {% for topic in post.topics %}
+                            <span class="badge badge-primary">#{{ topic }}</span>
+                        {% endfor %}
+                    </p>
                     <p><small>{{ post.timestamp }}{% if post.edited %} (edited){% endif %}</small></p>
                     <p class="post-meeting-time"><strong>Meeting Time:</strong> {{ post.meeting_time }}</p>
                     <p class="post-location"><strong>Location:</strong> {{ post.location }}</p>

@@ -267,8 +267,10 @@ def edit_post_from_profile(request, username, post_id):
         post.location = location
         post.edited = True
         post.save()
-        return JsonResponse({"message": "Post updated successfully."},
-                            status=200)
+        return JsonResponse({
+            "message": "Post updated successfully.",
+            "topics": post.topics
+        }, status=200)
     else:
         return JsonResponse({"error": "PUT request required."},
                             status=400)

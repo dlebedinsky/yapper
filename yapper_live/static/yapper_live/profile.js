@@ -85,14 +85,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const postContentP = postDiv.querySelector('.post-content');
         const originalContent = postContentP.innerText;
         const postTopicsP = postDiv.querySelector('.post-topics');
-        const originalTopics = Array.from(postTopicsP.querySelectorAll('.badge')).map(badge => badge.innerText.replace('#', '')).join(' ');
+        const originalTopics = postTopicsP ? Array.from(postTopicsP.querySelectorAll('.badge')).map(badge => badge.innerText.replace('#', '')).join(' ') : '';
         const meetingTimeP = postDiv.querySelector('.post-meeting-time');
         const originalMeetingTime = meetingTimeP ? meetingTimeP.innerText.replace('Meeting Time: ', '') : '';
         const locationP = postDiv.querySelector('.post-location');
         const originalLocation = locationP ? locationP.innerText.replace('Location: ', '') : '';
         const likeButton = postDiv.querySelector('.like-button');
         const deleteButton = postDiv.querySelector('.delete-button');
-        const username = document.querySelector('h2').innerText;
 
         // Hide the like button while editing
         if (likeButton) {
@@ -147,8 +146,8 @@ document.addEventListener('DOMContentLoaded', function() {
         saveButton.insertAdjacentElement('afterend', cancelButton);
 
         // Align save and cancel buttons with delete button
-        saveButton.style.marginTop = '0';
-        cancelButton.style.marginTop = '0';
+        saveButton.style.marginTop = deleteButton.style.marginTop;
+        cancelButton.style.marginTop = deleteButton.style.marginTop;
 
         // Handle save button click
         saveButton.onclick = function() {
@@ -158,8 +157,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const newMeetingTime = meetingTimeInput.value;
             const newMeetingDateTime = `${newMeetingDate} ${newMeetingTime}`;
             const newLocation = locationInput.value;
-            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-            fetch(`/profile/${username}/edit_post/${postId}`, {
+            fetch(`/edit_post_from_profile/${username}/${postId}`, {
                 method: 'PUT',
                 body: JSON.stringify({
                     content: newContent,
@@ -169,7 +167,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }),
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': csrfToken
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
                 }
             })
             .then(response => response.json())
