@@ -420,10 +420,20 @@ document.addEventListener('DOMContentLoaded', function() {
             const doc = parser.parseFromString(html, 'text/html');
             const postsContainer = document.querySelector('#posts');
             postsContainer.innerHTML = doc.querySelector('#posts').innerHTML;
-            if (postsContainer.innerHTML.trim() === '') {
-                postsContainer.innerHTML = '<p>No posts found for this topic.</p>';
-            }
-            console.log('Posts filtered by topic:', topic);
+    
+            // Reattach event listeners for like, edit, delete buttons
+            // Otherwise, I can't click them when I search for a topic
+            postsContainer.querySelectorAll('.like-button').forEach(button => {
+                button.onclick = handleLikeButtonClick;
+            });
+    
+            postsContainer.querySelectorAll('.edit-button').forEach(button => {
+                button.onclick = handleEditButtonClick;
+            });
+    
+            postsContainer.querySelectorAll('.delete-button').forEach(button => {
+                button.onclick = handleDeleteButtonClick;
+            });
         });
     }
 });
