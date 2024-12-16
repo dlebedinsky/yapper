@@ -46,12 +46,15 @@ def index(request, page_number=1):
         user_location = \
             get_location_coordinates(f"{request.user.city}, \
                                     {request.user.state}")
+    filtered_posts = []
     for post in page_obj:
         post_location = get_location_coordinates(post.location)
         post.distance = calculate_distance(user_location, post_location)
+        if post.distance is None or post.distance <= request.user.max_distance:
+            filtered_posts.append(post)
     return render(request, "yapper_live/index.html", {
         "page_obj": page_obj,
-        "posts": page_obj.object_list
+        "posts": filtered_posts
     })
 
 
@@ -161,9 +164,12 @@ def profile(request, username):
         user_location = \
             get_location_coordinates(f"{request.user.city}, \
                                     {request.user.state}")
+    filtered_posts = []
     for post in page_obj:
         post_location = get_location_coordinates(post.location)
         post.distance = calculate_distance(user_location, post_location)
+        if post.distance is None or post.distance <= request.user.max_distance:
+            filtered_posts.append(post)
     if request.method == "POST" and request.user == user:
         state = request.POST.get("state", "").strip()
         city = request.POST.get("city", "").strip()
@@ -185,7 +191,8 @@ def profile(request, username):
     return render(request, "yapper_live/profile.html", {
         "profile_user": user,
         "page_obj": page_obj,
-        "is_following": is_following
+        "is_following": is_following,
+        "posts": filtered_posts
     })
 
 
