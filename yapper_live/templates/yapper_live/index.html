@@ -58,7 +58,7 @@
                             <img src="{{ post.image_url }}" alt="Post Image" style="max-width: 400px; max-height:300px; margin-right: 10px;">
                         {% endif %}
                     </div>
-                    <button class="like-button btn btn-sm btn-outline-primary" data-post-id="{{ post.id }}">
+                    <button class="like-button btn btn-sm btn-outline-primary mt-2" data-post-id="{{ post.id }}">
                         {% if user in post.likes.all %}
                             Unlike
                         {% else %}
@@ -67,8 +67,9 @@
                     </button>
                     <span id="likes-count-{{ post.id }}" class="likes-count">{{ post.likes.count }}</span> likes
                     {% if user == post.user %}
-                        <button class="edit-button btn btn-sm btn-outline-primary">Edit</button>
-                        <button class="delete-button btn btn-sm btn-outline-danger">Delete</button>
+                        <!-- mt-2 helps align buttons vertically -->
+                        <button class="edit-button btn btn-sm btn-outline-primary mt-2">Edit</button>
+                        <button class="delete-button btn btn-sm btn-outline-danger mt-2">Delete</button>
                     {% endif %}
                 </div>
             {% endfor %}

@@ -225,7 +225,9 @@ def edit_post(request, post_id):
         topics = data.get("topics", "")
         meeting_time = data.get("meeting_time", "")
         location = data.get("location", "")
-        image_url = data.get("image_url", "")
+        # We now handle image_url separately
+        new_image_url = data.get("image_url", None)
+
         if content == "":
             return JsonResponse({"error": "Post content cannot be empty."},
                                 status=400)
@@ -246,7 +248,14 @@ def edit_post(request, post_id):
         post.topics = topics_list
         post.meeting_time = meeting_time
         post.location = location
-        post.image_url = image_url
+
+        # Only update image_url if a new, non-empty value is provided
+        if new_image_url is not None:
+            new_image_url = new_image_url.strip()
+            if new_image_url:
+                post.image_url = new_image_url
+            # If empty, do not overwrite post.image_url
+
         post.edited = True
         post.save()
         return JsonResponse({"message": "Post updated successfully."},
@@ -254,6 +263,7 @@ def edit_post(request, post_id):
     else:
         return JsonResponse({"error": "PUT request required."},
                             status=400)
+
 
 @login_required
 @csrf_exempt
@@ -264,6 +274,9 @@ def edit_post_from_profile(request, username, post_id):
         topics = data.get("topics", "")
         meeting_time = data.get("meeting_time", "")
         location = data.get("location", "")
+        # Handle image_url here as well
+        new_image_url = data.get("image_url", None)
+
         if content == "":
             return JsonResponse({"error": "Post content cannot be empty."},
                                 status=400)
@@ -284,6 +297,14 @@ def edit_post_from_profile(request, username, post_id):
         post.topics = topics_list
         post.meeting_time = meeting_time
         post.location = location
+
+        # Only update image_url if a new, non-empty value is provided
+        if new_image_url is not None:
+            new_image_url = new_image_url.strip()
+            if new_image_url:
+                post.image_url = new_image_url
+            # If empty, do not overwrite post.image_url
+
         post.edited = True
         post.save()
         return JsonResponse({
