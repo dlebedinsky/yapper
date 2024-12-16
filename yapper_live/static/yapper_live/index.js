@@ -64,7 +64,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     document.querySelector('#new-post-location').value = '';
                     document.querySelector('#new-post-image-url').value = '';
                     postError.style.display = 'none';
-                    // Reload posts
                     load_posts();
                 } else if (result.error) {
                     postError.innerText = result.error;
@@ -92,7 +91,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Function to handle like button click
     function handleLikeButtonClick(event) {
         if (!document.querySelector('[name=csrfmiddlewaretoken]')) {
             alert('You must be logged in to like posts.');
@@ -132,7 +130,6 @@ document.addEventListener('DOMContentLoaded', function() {
         button.onclick = handleLikeButtonClick;
     });
 
-    // Function to handle edit button click
     function handleEditButtonClick(event) {
         const button = event.target;
         const postDiv = button.closest('.post');
@@ -232,7 +229,6 @@ document.addEventListener('DOMContentLoaded', function() {
         saveButton.insertAdjacentElement('afterend', cancelButton);
     
         // Align save and cancel buttons with delete button
-        
         if (deleteButton && deleteButton.style.marginTop) {
             saveButton.style.marginTop = deleteButton.style.marginTop;
             cancelButton.style.marginTop = deleteButton.style.marginTop;
@@ -353,7 +349,6 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         
 
-        // Handle cancel button click
         cancelButton.onclick = function() {
             // Restore original content
             textarea.replaceWith(postContentP);
@@ -380,7 +375,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 restoredImg.style.maxHeight = '300px';
                 restoredImg.style.marginRight = '10px';
 
-                // If there's currently an img (shouldn't be after edit), replace it; otherwise, append
+                // If there's currently an img (shouldn't be after edit),
+                // replace it; otherwise, append
                 const currentImg = contentContainer.querySelector('img');
                 if (currentImg) {
                     currentImg.replaceWith(restoredImg);
@@ -410,7 +406,6 @@ document.addEventListener('DOMContentLoaded', function() {
         button.onclick = handleEditButtonClick;
     });
 
-    // Function to handle delete button click
     function handleDeleteButtonClick(event) {
         const button = event.target;
         const postDiv = button.closest('.post');
@@ -516,7 +511,7 @@ document.addEventListener('DOMContentLoaded', function() {
             postsContainer.innerHTML = doc.querySelector('#posts').innerHTML;
     
             // Reattach event listeners for like, edit, delete buttons
-            // Otherwise, I can't click them when I search for a topic
+            // Otherwise, we can't click them when we search for a topic
             postsContainer.querySelectorAll('.like-button').forEach(button => {
                 button.onclick = handleLikeButtonClick;
             });

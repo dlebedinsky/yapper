@@ -21,23 +21,31 @@ def get_location_coordinates(location):
         return (location.latitude, location.longitude)
     return None
 
+
 def calculate_distance(user_location, post_location):
     if user_location and post_location:
         return geodesic(user_location, post_location).miles
     return None
 
+
 def index(request, page_number=1):
-    if request.user.is_authenticated and (not request.user.city or not request.user.state or not request.user.max_distance):
+    if request.user.is_authenticated and (not request.user.city
+                                          or not request.user.state
+                                          or not request.user.max_distance):
         return render(request, "yapper_live/index.html", {
-            "error_message": "To see posts from others, add your location and distance preferences"
+            "error_message": """To see posts from others,
+                            add your location and distance preferences"""
         })
 
     posts = Post.objects.all().order_by('-timestamp')
-    paginator = Paginator(posts, 10)  # Show 10 posts per page
+    paginator = Paginator(posts, 10)
     page_number = request.GET.get('page', page_number)
     page_obj = paginator.get_page(page_number)
-    user_location = get_location_coordinates(f"{request.user.city}, {request.user.state}") if request.user.is_authenticated else None
-    max_distance = request.user.max_distance if request.user.is_authenticated else None
+    user_location = None
+    if request.user.is_authenticated:
+        user_location = \
+            get_location_coordinates(f"{request.user.city}, \
+                                    {request.user.state}")
     for post in page_obj:
         post_location = get_location_coordinates(post.location)
         post.distance = calculate_distance(user_location, post_location)
@@ -111,20 +119,33 @@ def new_post(request):
             location = data.get("location", "")
             image_url = data.get("image_url", "")
             if content == "":
-                return JsonResponse({"error": "Post content cannot be empty."}, status=400)
+                return JsonResponse({"error":
+                                    "Post content cannot be empty."},
+                                    status=400)
             if not meeting_time or not location:
-                return JsonResponse({"error": "Please add valid meeting time and location."}, status=400)
+                return JsonResponse({"error":
+                                    """Please add valid meeting
+                                    time and location."""},
+                                    status=400)
             if not get_location_coordinates(location):
-                return JsonResponse({"error": "Please add valid meeting time and location."}, status=400)
-
-            topics_list = [topic.strip().lower() for topic in topics.split('#') if topic.strip()]
-            post = Post(user=request.user, content=content, topics=topics_list, meeting_time=meeting_time, location=location, image_url=image_url)
+                return JsonResponse({"error":
+                                    """Please add valid meeting
+                                    time and location."""},
+                                    status=400)
+            topics_list = [topic.strip().lower()
+                           for topic in topics.split('#')
+                           if topic.strip()]
+            post = Post(user=request.user, content=content, topics=topics_list,
+                        meeting_time=meeting_time, location=location,
+                        image_url=image_url)
             post.save()
-            return JsonResponse({"message": "Post created successfully."}, status=201)
+            return JsonResponse({"message": "Post created successfully."},
+                                status=201)
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=500)
     else:
-        return JsonResponse({"error": "POST request required."}, status=400)
+        return JsonResponse({"error": "POST request required."},
+                            status=400)
 
 
 def profile(request, username):
@@ -133,8 +154,13 @@ def profile(request, username):
     paginator = Paginator(posts, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    is_following = request.user.is_authenticated and request.user in user.followers.all()
-    user_location = get_location_coordinates(f"{request.user.city}, {request.user.state}") if request.user.is_authenticated else None
+    is_following = (request.user.is_authenticated
+                    and request.user in user.followers.all())
+    user_location = None
+    if request.user.is_authenticated:
+        user_location = \
+            get_location_coordinates(f"{request.user.city}, \
+                                    {request.user.state}")
     for post in page_obj:
         post_location = get_location_coordinates(post.location)
         post.distance = calculate_distance(user_location, post_location)
@@ -147,7 +173,9 @@ def profile(request, username):
                 "profile_user": user,
                 "page_obj": page_obj,
                 "is_following": is_following,
-                "error_message": "You must specify your state, city, and max distance preference before viewing posts from others"
+                "error_message": """You must specify your state,
+                    city, and max distance preference before
+                    viewing posts from others"""
             })
         user.state = state
         user.city = city
@@ -232,18 +260,22 @@ def edit_post(request, post_id):
             return JsonResponse({"error": "Post content cannot be empty."},
                                 status=400)
         if not meeting_time or not location:
-            return JsonResponse({"error": "Please add valid meeting time and location."},
+            return JsonResponse({"error": """Please add valid meeting
+                                    time and location."""},
                                 status=400)
         if not get_location_coordinates(location):
-            return JsonResponse({"error": "Please add valid meeting time and location."},
+            return JsonResponse({"error": """Please add valid meeting
+                                    time and location."""},
                                 status=400)
 
         post = get_object_or_404(Post, id=post_id)
         if post.user != request.user:
-            return JsonResponse({"error": "You can only edit your own posts."},
+            return JsonResponse({"error": """You can only edit
+                                    your own posts."""},
                                 status=403)
 
-        topics_list = [topic.strip().lower() for topic in topics.split('#') if topic.strip()]
+        topics_list = [topic.strip().lower() for topic
+                       in topics.split('#') if topic.strip()]
         post.content = content
         post.topics = topics_list
         post.meeting_time = meeting_time
@@ -281,18 +313,22 @@ def edit_post_from_profile(request, username, post_id):
             return JsonResponse({"error": "Post content cannot be empty."},
                                 status=400)
         if not meeting_time or not location:
-            return JsonResponse({"error": "Please add valid meeting time and location."},
+            return JsonResponse({"error": """Please add valid meeting
+                                    time and location."""},
                                 status=400)
         if not get_location_coordinates(location):
-            return JsonResponse({"error": "Please add valid meeting time and location."},
+            return JsonResponse({"error": """Please add valid meeting
+                                    time and location."""},
                                 status=400)
 
         post = get_object_or_404(Post, id=post_id)
         if post.user != request.user:
-            return JsonResponse({"error": "You can only edit your own posts."},
+            return JsonResponse({"error": """You can only edit
+                                    your own posts."""},
                                 status=403)
 
-        topics_list = [topic.strip().lower() for topic in topics.split('#') if topic.strip()]
+        topics_list = [topic.strip().lower() for topic
+                       in topics.split('#') if topic.strip()]
         post.content = content
         post.topics = topics_list
         post.meeting_time = meeting_time
@@ -334,7 +370,8 @@ def search_topics(request):
     all_posts = Post.objects.all()
     unique_topics = set()
     for post in all_posts:
-        unique_topics.update(post.topics)  # post.topics returns a list of topics
+        # post.topics is a list of topics
+        unique_topics.update(post.topics)
 
     filtered_topics = [topic for topic in unique_topics if query in topic]
     return JsonResponse({'topics': filtered_topics})
@@ -342,7 +379,9 @@ def search_topics(request):
 
 def filter_posts(request):
     topic = request.GET.get('topic', '').lower()
-    posts = Post.objects.filter(topics_str__icontains=topic).order_by('-timestamp')
+    posts = Post.objects \
+        .filter(topics_str__icontains=topic) \
+        .order_by('-timestamp')
 
     paginator = Paginator(posts, 10)
     page_number = request.GET.get('page')

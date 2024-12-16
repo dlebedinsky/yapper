@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-    // Function to handle like button click
+
     function handleLikeButtonClick(event) {
         if (!document.querySelector('[name=csrfmiddlewaretoken]')) {
             alert('You must be logged in to like posts.');
@@ -90,21 +90,14 @@ document.addEventListener('DOMContentLoaded', function() {
         button.onclick = handleLikeButtonClick;
     });
 
-    // Function to handle edit button click
     function handleEditButtonClick(event) {
         const button = event.target;
         const postDiv = button.closest('.post');
         const postId = postDiv.dataset.postId;
 
-        // Get the username from the page. 
-        // Adjust this selector to match how the username is displayed in your profile template.
+        // Get the username and content from the page. 
         const username = document.querySelector('#profile-username').innerText.trim();
-
-        // If your HTML structure on the profile page differs, adjust this selector.
-        // For example, if there's no .d-flex > div, find the appropriate container 
-        // holding post-content, post-topics, etc.
         const contentContainer = postDiv.querySelector('.d-flex > div') || postDiv;
-
         const postContentP = contentContainer.querySelector('.post-content');
         const originalContent = postContentP.innerText;
 
@@ -212,16 +205,11 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (newImageUrl) {
                 bodyData.image_url = newImageUrl;
-            } else if (!originalImageUrl) {
-                // If there was no original image and no new image provided, 
-                // you can omit image_url entirely or set it to empty.
-                // bodyData.image_url = '';
             } else {
-                // If there was an original image and user doesn't provide a new one, 
+                // If there was no original image or no new image provided,
                 // omit image_url so the backend doesn't overwrite it.
             }
 
-            // Use the correct endpoint for profile editing
             fetch(`/edit_post_from_profile/${username}/${postId}`, {
                 method: 'PUT',
                 body: JSON.stringify(bodyData),
@@ -355,7 +343,6 @@ document.addEventListener('DOMContentLoaded', function() {
         button.onclick = handleEditButtonClick;
     });
 
-    // Function to handle delete button click
     function handleDeleteButtonClick(event) {
         const button = event.target;
         const postDiv = button.closest('.post');

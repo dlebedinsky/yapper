@@ -9,14 +9,16 @@ class User(AbstractUser):
                                        blank=True)
     state = models.CharField(max_length=2, blank=True, null=True)
     city = models.CharField(max_length=100, blank=True, null=True)
-    max_distance = models.FloatField(blank=True, null=True)  # New field for max distance
+    max_distance = models.FloatField(blank=True, null=True)
 
 
 class Post(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="posts")
+    user = models.ForeignKey(User, on_delete=models.CASCADE,
+                             related_name="posts")
     content = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
-    likes = models.ManyToManyField(User, related_name="liked_posts", blank=True)
+    likes = models.ManyToManyField(User, related_name="liked_posts",
+                                   blank=True)
     edited = models.BooleanField(default=False)
     topics_str = models.TextField(blank=True, default='')
     meeting_time = models.CharField(max_length=20, blank=True, null=True)
@@ -29,7 +31,6 @@ class Post(models.Model):
     @property
     def topics(self):
         # Parse the string to return a list of topics
-        # Assuming topics are separated by '#' just like the original code logic
         return [t.strip() for t in self.topics_str.split('#') if t.strip()]
 
     @topics.setter
