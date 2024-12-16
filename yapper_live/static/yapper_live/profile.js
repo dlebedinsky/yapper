@@ -95,14 +95,32 @@ document.addEventListener('DOMContentLoaded', function() {
         const button = event.target;
         const postDiv = button.closest('.post');
         const postId = postDiv.dataset.postId;
-        const postContentP = postDiv.querySelector('.post-content');
+
+        // Get the username from the page. 
+        // Adjust this selector to match how the username is displayed in your profile template.
+        const username = document.querySelector('#profile-username').innerText.trim();
+
+        // If your HTML structure on the profile page differs, adjust this selector.
+        // For example, if there's no .d-flex > div, find the appropriate container 
+        // holding post-content, post-topics, etc.
+        const contentContainer = postDiv.querySelector('.d-flex > div') || postDiv;
+
+        const postContentP = contentContainer.querySelector('.post-content');
         const originalContent = postContentP.innerText;
-        const postTopicsP = postDiv.querySelector('.post-topics');
-        const originalTopics = postTopicsP ? Array.from(postTopicsP.querySelectorAll('.badge')).map(badge => badge.innerText.replace('#', '')).join(' ') : '';
-        const meetingTimeP = postDiv.querySelector('.post-meeting-time');
+
+        const postTopicsP = contentContainer.querySelector('.post-topics');
+        const originalTopics = Array.from(postTopicsP.querySelectorAll('.badge'))
+            .map(badge => badge.innerText.replace('#', '')).join(' ');
+
+        const meetingTimeP = contentContainer.querySelector('.post-meeting-time');
         const originalMeetingTime = meetingTimeP ? meetingTimeP.innerText.replace('Meeting Time: ', '') : '';
-        const locationP = postDiv.querySelector('.post-location');
+
+        const locationP = contentContainer.querySelector('.post-location');
         const originalLocation = locationP ? locationP.innerText.replace('Location: ', '') : '';
+
+        const originalImage = contentContainer.querySelector('img');
+        const originalImageUrl = originalImage ? originalImage.src : '';
+
         const likeButton = postDiv.querySelector('.like-button');
         const deleteButton = postDiv.querySelector('.delete-button');
 
@@ -111,17 +129,15 @@ document.addEventListener('DOMContentLoaded', function() {
             likeButton.style.display = 'none';
         }
 
-        // Create a textarea for editing content
+        // Create edit fields
         const textarea = document.createElement('textarea');
         textarea.className = 'form-control';
         textarea.value = originalContent;
 
-        // Create an input for editing topics
         const topicsInput = document.createElement('input');
         topicsInput.className = 'form-control mt-2';
         topicsInput.value = originalTopics;
 
-        // Create inputs for editing meeting date and time
         const [originalMeetingDate, originalMeetingTimeOnly] = originalMeetingTime.split(' ');
         const meetingDateInput = document.createElement('input');
         meetingDateInput.type = 'date';
@@ -133,36 +149,51 @@ document.addEventListener('DOMContentLoaded', function() {
         meetingTimeInput.className = 'form-control mt-2';
         meetingTimeInput.value = originalMeetingTimeOnly;
 
-        // Create an input for editing location
         const locationInput = document.createElement('input');
         locationInput.className = 'form-control mt-2';
         locationInput.value = originalLocation;
 
-        // Create a save button
+        const imageUrlInput = document.createElement('input');
+        imageUrlInput.className = 'form-control mt-2';
+        imageUrlInput.value = originalImageUrl;
+        imageUrlInput.placeholder = "To change image, paste link here";
+
         const saveButton = document.createElement('button');
         saveButton.className = 'btn btn-sm btn-outline-primary mt-2';
         saveButton.innerText = 'Save';
         saveButton.dataset.postId = postId;
 
-        // Create a cancel button
         const cancelButton = document.createElement('button');
         cancelButton.className = 'btn btn-sm btn-outline-secondary mt-2 ml-2';
         cancelButton.innerText = 'Cancel';
 
-        // Replace the post content with the textarea and save button
+        // Replace original elements with edit fields
         postContentP.replaceWith(textarea);
-        postDiv.insertBefore(topicsInput, button);
-        postDiv.insertBefore(meetingDateInput, button);
-        postDiv.insertBefore(meetingTimeInput, button);
-        postDiv.insertBefore(locationInput, button);
+        postTopicsP.replaceWith(topicsInput);
+
+        if (meetingTimeP) {
+            meetingTimeP.replaceWith(meetingDateInput);
+            contentContainer.insertBefore(meetingTimeInput, locationP || originalImage || null);
+        }
+
+        if (locationP) {
+            locationP.replaceWith(locationInput);
+        }
+
+        if (originalImage) {
+            originalImage.replaceWith(imageUrlInput);
+        } else {
+            contentContainer.appendChild(imageUrlInput);
+        }
+
         button.replaceWith(saveButton);
         saveButton.insertAdjacentElement('afterend', cancelButton);
 
-        // Align save and cancel buttons with delete button
-        saveButton.style.marginTop = deleteButton.style.marginTop;
-        cancelButton.style.marginTop = deleteButton.style.marginTop;
+        if (deleteButton && deleteButton.style.marginTop) {
+            saveButton.style.marginTop = deleteButton.style.marginTop;
+            cancelButton.style.marginTop = deleteButton.style.marginTop;
+        } 
 
-        // Handle save button click
         saveButton.onclick = function() {
             const newContent = textarea.value;
             const newTopics = topicsInput.value;
@@ -170,14 +201,30 @@ document.addEventListener('DOMContentLoaded', function() {
             const newMeetingTime = meetingTimeInput.value;
             const newMeetingDateTime = `${newMeetingDate} ${newMeetingTime}`;
             const newLocation = locationInput.value;
+            const newImageUrl = imageUrlInput.value.trim();
+
+            const bodyData = {
+                content: newContent,
+                topics: newTopics,
+                meeting_time: newMeetingDateTime,
+                location: newLocation
+            };
+            
+            if (newImageUrl) {
+                bodyData.image_url = newImageUrl;
+            } else if (!originalImageUrl) {
+                // If there was no original image and no new image provided, 
+                // you can omit image_url entirely or set it to empty.
+                // bodyData.image_url = '';
+            } else {
+                // If there was an original image and user doesn't provide a new one, 
+                // omit image_url so the backend doesn't overwrite it.
+            }
+
+            // Use the correct endpoint for profile editing
             fetch(`/edit_post_from_profile/${username}/${postId}`, {
                 method: 'PUT',
-                body: JSON.stringify({
-                    content: newContent,
-                    topics: newTopics,
-                    meeting_time: newMeetingDateTime,
-                    location: newLocation
-                }),
+                body: JSON.stringify(bodyData),
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
@@ -186,14 +233,14 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(result => {
                 if (result.message) {
-                    // Replace the textarea with the updated post content
+                    // Replace textarea with updated content
                     const updatedPostContentP = document.createElement('p');
                     updatedPostContentP.className = 'post-content';
                     updatedPostContentP.innerText = newContent;
                     textarea.replaceWith(updatedPostContentP);
                     saveButton.replaceWith(button);
                     cancelButton.remove();
-                    // Update topics
+
                     const updatedTopicsP = document.createElement('p');
                     updatedTopicsP.className = 'post-topics';
                     newTopics.split(' ').forEach(topic => {
@@ -203,22 +250,52 @@ document.addEventListener('DOMContentLoaded', function() {
                         updatedTopicsP.appendChild(badge);
                     });
                     topicsInput.replaceWith(updatedTopicsP);
-                    // Update meeting time and location
+
                     const updatedMeetingTimeP = document.createElement('p');
                     updatedMeetingTimeP.className = 'post-meeting-time';
                     updatedMeetingTimeP.innerText = `Meeting Time: ${newMeetingDateTime}`;
                     meetingDateInput.replaceWith(updatedMeetingTimeP);
                     meetingTimeInput.remove();
+
                     const updatedLocationP = document.createElement('p');
                     updatedLocationP.className = 'post-location';
                     updatedLocationP.innerText = `Location: ${newLocation}`;
                     locationInput.replaceWith(updatedLocationP);
-                    // Add edited label
+
+                    if (newImageUrl) {
+                        const updatedImageUrlImg = document.createElement('img');
+                        updatedImageUrlImg.src = newImageUrl;
+                        updatedImageUrlImg.alt = 'Post Image';
+                        updatedImageUrlImg.style.maxWidth = '400px';
+                        updatedImageUrlImg.style.maxHeight = '300px';
+                        updatedImageUrlImg.style.marginRight = '10px';
+
+                        if (contentContainer.querySelector('img')) {
+                            contentContainer.querySelector('img').replaceWith(updatedImageUrlImg);
+                        } else {
+                            contentContainer.appendChild(updatedImageUrlImg);
+                        }
+                        imageUrlInput.remove();
+                    } else {
+                        if (originalImageUrl) {
+                            const restoredImg = document.createElement('img');
+                            restoredImg.src = originalImageUrl;
+                            restoredImg.alt = 'Post Image';
+                            restoredImg.style.maxWidth = '400px';
+                            restoredImg.style.maxHeight = '300px';
+                            restoredImg.style.marginRight = '10px';
+                        
+                            imageUrlInput.replaceWith(restoredImg);
+                        } else {
+                            imageUrlInput.remove();
+                        }
+                    }
+
                     const editedLabel = document.createElement('small');
                     editedLabel.className = 'text-muted';
                     editedLabel.innerText = ' (edited)';
                     updatedPostContentP.appendChild(editedLabel);
-                    // Show the like button again
+
                     if (likeButton) {
                         likeButton.style.display = 'inline-block';
                     }
@@ -228,23 +305,52 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         };
 
-        // Handle cancel button click
         cancelButton.onclick = function() {
+            // Restore original content
             textarea.replaceWith(postContentP);
             topicsInput.replaceWith(postTopicsP);
-            meetingDateInput.remove();
+
+            const originalMeetingTimeP = document.createElement('p');
+            originalMeetingTimeP.className = 'post-meeting-time';
+            originalMeetingTimeP.innerText = `Meeting Time: ${originalMeetingTime}`;
+            meetingDateInput.replaceWith(originalMeetingTimeP);
             meetingTimeInput.remove();
-            locationInput.replaceWith(locationP);
+
+            const originalLocationP = document.createElement('p');
+            originalLocationP.className = 'post-location';
+            originalLocationP.innerText = `Location: ${originalLocation}`;
+            locationInput.replaceWith(originalLocationP);
+
+            imageUrlInput.remove();
+            if (originalImageUrl) {
+                const restoredImg = document.createElement('img');
+                restoredImg.src = originalImageUrl;
+                restoredImg.alt = 'Post Image';
+                restoredImg.style.maxWidth = '400px';
+                restoredImg.style.maxHeight = '300px';
+                restoredImg.style.marginRight = '10px';
+
+                const currentImg = contentContainer.querySelector('img');
+                if (currentImg) {
+                    currentImg.replaceWith(restoredImg);
+                } else {
+                    contentContainer.appendChild(restoredImg);
+                }
+            } else {
+                const existingImg = contentContainer.querySelector('img');
+                if (existingImg) existingImg.remove();
+            }
+
             saveButton.replaceWith(button);
             cancelButton.remove();
-            // Show the like button again
+
             if (likeButton) {
                 likeButton.style.display = 'inline-block';
             }
         };
     }
 
-    // Select all edit buttons
+    // Reattach event handlers for edit buttons
     document.querySelectorAll('.edit-button').forEach(button => {
         button.onclick = handleEditButtonClick;
     });
